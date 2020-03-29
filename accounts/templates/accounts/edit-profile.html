@@ -1,0 +1,44 @@
+{% extends 'layout.html'%}
+{% block title %}
+Edit {{ u }}
+{% endblock %}
+{% block body %}
+
+<form action="" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+    <div class="container bg-primary rounded">
+        <div class="row">
+            <div class="col">
+                <p class="h1 text-center">@{{ u.username }}</p>
+            </div>
+        </div>
+        <div class="row  pb-3">
+            <div class="col-3 bg-secondary pb-3">
+                <img class="img-fluid rounded-circle img-thumbnail" src="{{ u.avatar.url }}" >
+                <input class="btn btn-light form-control-file" type="file" name="avatar" value="{{ u.avatar }}">
+            </div>
+            <div class="col-9 bg-dark p-3">
+                <div class="form-group">
+                    <label class="text-white" for="exampleInputEmail1">Full Name:</label>
+                    <input type="text" class="form-control" id="fullname" name="name" value="{{ u.name }}"
+                           aria-describedby="fullnameHelp" placeholder="Fullname">
+                    <small id="fullnameHelp" class="form-text text-muted">It will display to others as your name.</small>
+                </div>
+                <div class="form-group">
+                    <label class="text-white" for="exampleInputEmail1">Bio:</label>
+                    <input type="text" class="form-control" id="fullname" name="bio" value="{{ u.bio }}"
+                           aria-describedby="emailHelp" placeholder="How do you describe yourself?">
+                    <small id="fullnameHelp" class="form-text text-muted">example: I'm a movie freak!</small>
+                </div>
+                <input class="btn btn-success float-right" type="submit" value="Save">
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+{% endblock %}
+
+
+

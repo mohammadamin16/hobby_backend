@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block title %}
+    Suggest To Friends!
+{% endblock %}
+{% block body %}
+
+<form action="" method="post">
+    {% csrf_token %}
+    <div class="container text-center">
+        <div class="row">
+            <div class="col">
+                <img src="{{ film.fullsize_poster }}" height="50%">
+            </div>
+
+        </div>
+
+
+
+
+    <input type="submit">
+    </div>
+</form>
+
+
+{% endblock %}

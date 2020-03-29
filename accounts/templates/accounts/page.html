@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+{% load bootstrap4 %}
+{% load user_detail %}
+{% load static %}
+{% block title %}
+{{ u }} Page
+{% endblock %}
+{% block body %}
+    <div class="container text-center">
+    <p class="h1">{{ user.name }}</p>
+    {% if u.avatar %}
+        <img class="group list-group-image rounded-circle" src="{{ u.avatar.url }}" alt="user avatar" width="100" height="100"/>
+    {% else %}
+        <img class="group list-group-image p-3" src="{% static 'img/user.png' %}" alt="user avatar" width="100" height="100"/>
+    {% endif %}
+
+        <div class="row">
+        <div class="col">
+            <p class="badge btn-primary float-right">Username :</p>
+        </div>
+        <div class="col">
+            <span class="badge badge-secondary ml-4 float-left">{{ user.username }}</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+        <div class="badge btn-primary float-right">Watched Movies :</div>
+        </div>
+        <div class="col float-right text-left">
+        {% for title in user.watched_films|list_of_movies %}
+            <a href="{% url 'films:film-redirector' title %}">
+            <span class="badge badge-secondary ml-4">
+                 {{ title }}
+            </span>
+            </a>
+        <br>
+        {% endfor %}
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col">
+        <div class="badge btn-primary float-right">Favorite Films :</div>
+        </div>
+        <div class="col float-right text-left">
+        {% if user.fav_list|list_of_movies != '' %}
+            {% for title in user.fav_list|list_of_movies %}
+            <a href="{% url 'films:film-redirector' title %}">
+            <span class="badge badge-secondary ml-4">
+                {{ title }}
+            </span>
+            </a>
+        <br>
+        {% endfor %}
+
+        {% else %}
+        <span class="badge badge-secondary ml-4">
+        Nothing! <a href="{% url 'films:search' %}"> Add? </a>
+        </span>
+        {% endif %}
+        </div>
+    </div>
+
+    </div>
+
+{% endblock %}
