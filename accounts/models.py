@@ -71,4 +71,5 @@ class User(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
-
+    def get_suggestions(self):
+        return self.suggests.all()

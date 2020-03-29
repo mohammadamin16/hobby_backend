@@ -10,6 +10,9 @@ from films import imdbapi
 
 
 def get_data(request):
+    """
+    It tries to catch sent data with post request
+    """
     try:
         data = json.loads(request.body.decode('utf-8'))
     except:
@@ -28,6 +31,10 @@ def json_user(user):
 
 
 def login(request):
+    """
+    :param request: (username, password)
+    :return: msg and user (if success)
+    """
     if request.method == 'POST':
         data = get_data(request)
         username = data.get('username')
@@ -53,12 +60,16 @@ def login(request):
 
 
 def signup(request):
+    """
+    :param request: (username, password, name)
+    :return: msg and user (if success)
+    """
     data = get_data(request)
     username = data.get('username')
     password = data.get('password')
     name = data.get('name')
     try:
-        user = User.objects.create(username=username,name=name)
+        user = User.objects.create(username=username, name=name)
         user.set_password(password)
         user.save()
         msg = 'welcome'
@@ -74,6 +85,11 @@ def signup(request):
 
 
 def search_film(request):
+    """
+    search in imdb database and save searched films to our own db
+    :param request: (query)
+    :return: films
+    """
     data = get_data(request)
     query = data.get('query')
     ids = imdbapi.search(query, results=4)
@@ -107,6 +123,11 @@ def search_film(request):
 
 
 def add_to_fav(request):
+    """
+    Add a Film to user's Favorite Movies
+    :param request: (username, film_id)
+    :return: msg
+    """
     data = get_data(request)
     username = data.get('username')
     film_id = data.get('film_id')
@@ -118,6 +139,11 @@ def add_to_fav(request):
 
 
 def add_to_watch(request):
+    """
+    Add a Film to user's Watch List
+    :param request: (username, film_id)
+    :return: msg
+    """
     data = get_data(request)
     username = data.get('username')
     film_id = data.get('film_id')
@@ -129,6 +155,11 @@ def add_to_watch(request):
 
 
 def friendship_request(request):
+    """
+    Add a request to the one user wants to be friend with
+    :param request: (username, friend's username)
+    :return: msg
+    """
     data = get_data(request)
     username = data.get('username')
     friend_username = data.get('friend_username')
@@ -140,6 +171,11 @@ def friendship_request(request):
 
 
 def get_requests(request):
+    """
+    Returns all the requests for a user
+    :param request: (username)
+    :return: requests
+    """
     data = get_data(request)
     username = data.get('username')
     user = User.objects.get(username=username)
@@ -151,6 +187,11 @@ def get_requests(request):
 
 
 def accept_request(request):
+    """
+    When user accepts other user's friendship_requests
+    :param request: (username, friend_username)
+    :return: msg
+    """
     data = get_data(request)
     friend_username = data.get('friend_username')
     username = data.get('username')
@@ -165,6 +206,12 @@ def accept_request(request):
 
 
 def deny_request(request):
+    """
+    When user denies other user's friendship_requests
+    :param request: (username, friend_username)
+    :return: msg
+    """
+
     data = get_data(request)
     friend_username = data.get('friend_username')
     username = data.get('username')
@@ -176,6 +223,12 @@ def deny_request(request):
 
 
 def remove_friend(request):
+    """
+    When a user ends being friend with another user
+    :param request: (username, friend_username)
+    :return: msg
+    """
+
     data = get_data(request)
     friend_username = data.get('friend_username')
     username = data.get('username')
@@ -189,6 +242,12 @@ def remove_friend(request):
 
 
 def suggest(request):
+    """
+    suggest to friends a flim
+    :param request: (username, film_id, title of the suggestion)
+    :return: msg
+    """
+
     data     = get_data(request)
     film_id  = data.get('film_id')
     title    = data.get('title')
@@ -206,3 +265,40 @@ def suggest(request):
         friend.suggests.add(s)
         friend.save()
     return JsonResponse({'msg': 'You just suggest this film to all your friends!'})
+
+
+def film2json(film):
+    return {'imdbID':film.imdb_id,
+            'title':film.title,
+            'icon':film.icon}
+
+
+def suggest2json(_suggest):
+    return {'title': _suggest.title,
+            'film': film2json(_suggest.film),
+            'suggester': user2json(_suggest.suggester)}
+
+
+def user2json(_user):
+    return {'username': _user.username,
+            'name': _user.name}
+
+
+def get_suggests(request):
+    """
+    Returns all the suggestions for a user
+    :param request: (username)
+    :return: msg
+    """
+
+    data = get_data(request)
+    username = data.get('username')
+    user = User.objects.get(username=username)
+    user_suggests = user.get_suggestions()
+    suggests = []
+    for s in user_suggests:
+        suggests.append(suggest2json(s))
+    print(suggests)
+    return JsonResponse({'msg': 'There are your suggests!',
+                         'suggests': suggests
+                         })

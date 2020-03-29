@@ -17,4 +17,5 @@ urlpatterns = [
     path('remove_friend', views.remove_friend, name='remove_friend'),
     path('get_requests', views.get_requests, name='get-request'),
     path('suggest', views.suggest, name='suggest'),
+    path('get_suggests', views.get_suggests, name='get-suggests'),
 ]
