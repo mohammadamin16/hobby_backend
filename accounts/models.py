@@ -48,9 +48,9 @@ class User(AbstractBaseUser):
     watch_films = models.ManyToManyField('films.Film', blank=True, related_name='watched')
     fav_list      = models.ManyToManyField('films.Film', blank=True, related_name='fav_list')
     # last_watched_film = models.ForeignKey('films.Film', on_delete=models.CASCADE, blank=True, related_name='lastWatched', null=True)
-    # requested_users = models.ManyToManyField('accounts.User', related_name='request_users', blank=True, null=True)
-    # friends = models.ManyToManyField('accounts.User', related_name='friends_users', blank=True, null=True)
-    # suggests = models.ManyToManyField('films.Suggest', related_name='suggests', null=True, blank=True)
+    requested_users = models.ManyToManyField('accounts.User', related_name='request_users', blank=True)
+    friends = models.ManyToManyField('accounts.User', related_name='friends_users', blank=True)
+    suggests = models.ManyToManyField('films.Suggest', related_name='suggests', blank=True)
 
     def __str__(self):
         return self.username

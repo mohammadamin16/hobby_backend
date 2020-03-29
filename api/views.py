@@ -4,7 +4,7 @@ import threading
 from django.contrib.auth import authenticate
 from django.http import HttpResponse, JsonResponse
 from accounts.models import User
-from films.models import Film
+from films.models import Film, Suggest
 
 from films import imdbapi
 
@@ -128,4 +128,81 @@ def add_to_watch(request):
     return JsonResponse({'msg': 'success'})
 
 
+def friendship_request(request):
+    data = get_data(request)
+    username = data.get('username')
+    friend_username = data.get('friend_username')
+    user = User.objects.get(username=username)
+    friend = User.objects.get(username=friend_username)
+    friend.requested_users.add(user)
+    friend.save()
+    return JsonResponse({'msg': 'Request Sends!'})
 
+
+def get_requests(request):
+    data = get_data(request)
+    username = data.get('username')
+    user = User.objects.get(username=username)
+    requests = []
+    for r in user.requested_users.all():
+        requests.append(r.username)
+
+    return JsonResponse({'msg': 'here they are!', 'requests': requests})
+
+
+def accept_request(request):
+    data = get_data(request)
+    friend_username = data.get('friend_username')
+    username = data.get('username')
+    user = User.objects.get(username=username)
+    friend = User.objects.get(username=friend_username)
+    user.friends.add(friend)
+    user.requested_users.remove(friend)
+    friend.friends.add(user)
+    friend.save()
+    user.save()
+    return JsonResponse({'msg': 'Now you are friends!'})
+
+
+def deny_request(request):
+    data = get_data(request)
+    friend_username = data.get('friend_username')
+    username = data.get('username')
+    user = User.objects.get(username=username)
+    friend = User.objects.get(username=friend_username)
+    user.requested_users.remove(friend)
+    user.save()
+    return JsonResponse({'msg': 'You denied him/her!'})
+
+
+def remove_friend(request):
+    data = get_data(request)
+    friend_username = data.get('friend_username')
+    username = data.get('username')
+    user = User.objects.get(username=username)
+    friend = User.objects.get(username=friend_username)
+    user.friends.remove(friend)
+    friend.friends.remove(user)
+    user.save()
+    friend.save()
+    return JsonResponse({'msg': 'You are not friend with {} anymore(in hobbies!)'.format(friend_username)})
+
+
+def suggest(request):
+    data     = get_data(request)
+    film_id  = data.get('film_id')
+    title    = data.get('title')
+    username = data.get('username')
+    user = User.objects.get(username=username)
+    film = Film.objects.get(imdb_id=film_id)
+    friends = user.friends.all()
+    s = Suggest.objects.create(
+        title=title,
+        film=film,
+        suggester=user
+    )
+    s.save()
+    for friend in friends:
+        friend.suggests.add(s)
+        friend.save()
+    return JsonResponse({'msg': 'You just suggest this film to all your friends!'})
