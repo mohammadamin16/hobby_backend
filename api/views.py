@@ -4,6 +4,7 @@ import threading
 from django.contrib.auth import authenticate
 from django.http import HttpResponse, JsonResponse
 from accounts.models import User
+from films.models import Film
 
 from films import imdbapi
 
@@ -75,13 +76,21 @@ def signup(request):
 def search_film(request):
     data = get_data(request)
     query = data.get('query')
-    ids = imdbapi.search(query, results=10)
+    ids = imdbapi.search(query, results=4)
     films = []
     threads = []
 
     def get_info(imdb_id, l: list):
-        film = imdbapi.get_info(imdb_id)
-        print(film['title'])
+        film_imdb = imdbapi.get_info(imdb_id)
+        film = dict(
+            imdb_id=film_imdb['imdbId'],
+            title=film_imdb['title'],
+            icon=film_imdb['cover_url'],)
+        try:
+            film_db = Film.objects.get(imdb_id=film_imdb['imdbId'])
+        except:
+            film_db = Film.objects.create(**film)
+
         l.append(film)
 
     for ID in ids:
@@ -90,10 +99,33 @@ def search_film(request):
         threads.append(t1)
 
     for t in threads:
-        print('THREAD FINISH!')
         t.join()
 
     response = {'films': films}
 
     return JsonResponse(response)
+
+
+def add_to_fav(request):
+    data = get_data(request)
+    username = data.get('username')
+    film_id = data.get('film_id')
+    film = Film.objects.get(imdb_id=film_id)
+    user = User.objects.get(username=username)
+    user.fav_list.add(film)
+    user.save()
+    return JsonResponse({'msg': 'success'})
+
+
+def add_to_watch(request):
+    data = get_data(request)
+    username = data.get('username')
+    film_id = data.get('film_id')
+    film = Film.objects.get(imdb_id=film_id)
+    user = User.objects.get(username=username)
+    user.watch_films.add(film)
+    user.save()
+    return JsonResponse({'msg': 'success'})
+
+
 

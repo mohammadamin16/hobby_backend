@@ -45,8 +45,8 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     # Hobby Fields:
-    # watched_films = models.ManyToManyField('films.Film', blank=True, related_name='watched')
-    # fav_list      = models.ManyToManyField('films.Film', blank=True, related_name='fav')
+    watch_films = models.ManyToManyField('films.Film', blank=True, related_name='watched')
+    fav_list      = models.ManyToManyField('films.Film', blank=True, related_name='fav_list')
     # last_watched_film = models.ForeignKey('films.Film', on_delete=models.CASCADE, blank=True, related_name='lastWatched', null=True)
     # requested_users = models.ManyToManyField('accounts.User', related_name='request_users', blank=True, null=True)
     # friends = models.ManyToManyField('accounts.User', related_name='friends_users', blank=True, null=True)
