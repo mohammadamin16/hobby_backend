@@ -33,8 +33,8 @@ class User(AbstractBaseUser):
     username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
-    # avatar = models.ImageField(upload_to='avatars/', default='')
-    # bio = models.CharField(max_length=1000)
+    avatar = models.ImageField(upload_to='avatars/', default='user.png')
+    bio = models.CharField(max_length=1000, default='')
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -50,7 +50,7 @@ class User(AbstractBaseUser):
     # last_watched_film = models.ForeignKey('films.Film', on_delete=models.CASCADE, blank=True, related_name='lastWatched', null=True)
     requested_users = models.ManyToManyField('accounts.User', related_name='request_users', blank=True)
     friends = models.ManyToManyField('accounts.User', related_name='friends_users', blank=True)
-    suggests = models.ManyToManyField('films.Suggest', related_name='suggests', blank=True)
+    # suggests = models.ManyToManyField('films.Suggest', related_name='suggests', blank=True)
 
     def __str__(self):
         return self.username

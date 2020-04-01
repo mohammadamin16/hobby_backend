@@ -4,8 +4,10 @@ import threading
 from django.contrib.auth import authenticate
 from django.http import HttpResponse, JsonResponse
 from accounts.models import User
-from films.models import Film, Suggest
+from api.models import Suggestion, Notification
+from films.models import Film
 
+from itertools import chain
 from films import imdbapi
 
 
@@ -24,12 +26,6 @@ def index(request):
     return HttpResponse("Hello What's Up?")
 
 
-def json_user(user):
-    username = user.username
-    name     = user.name
-    return {'username': username, 'name': name}
-
-
 def login(request):
     """
     :param request: (username, password)
@@ -42,9 +38,9 @@ def login(request):
 
         user = authenticate(username=username, password=password)
         if user is not None:
-            msg = 'welcome'
+            msg = 'success'
             response = {'msg': msg,
-                        'user': json_user(user)}
+                        'user': user2json(user)}
 
             return JsonResponse(response)
 
@@ -74,7 +70,7 @@ def signup(request):
         user.save()
         msg = 'welcome'
         response = {'msg': msg,
-                    'user': json_user(user)}
+                    'user': user2json(user)}
 
     except Exception as e:
         msg = e.args
@@ -87,30 +83,49 @@ def signup(request):
 def search_film(request):
     """
     search in imdb database and save searched films to our own db
-    :param request: (query)
+    :param request: (query, username)
     :return: films
     """
     data = get_data(request)
     query = data.get('query')
+    username = data.get('username')
+    user = User.objects.get(username=username)
+
     ids = imdbapi.search(query, results=4)
     films = []
     threads = []
 
-    def get_info(imdb_id, l: list):
+    def get_info(imdb_id, l, _user: User):
         film_imdb = imdbapi.get_info(imdb_id)
         film = dict(
             imdb_id=film_imdb['imdbId'],
             title=film_imdb['title'],
-            icon=film_imdb['cover_url'],)
+            icon=film_imdb['cover_url'],
+            poster=film_imdb['fullsize_poster'],
+            year=film_imdb['year'],
+            countries=film_imdb['countries'],
+            box_office=film_imdb['box_office'],
+            rating=film_imdb['rating'],
+            votes=film_imdb['votes'],
+            cast=film_imdb['cast'],
+            writer=film_imdb['writer'],
+            director=film_imdb['director'],
+            synopsis=film_imdb['synopsis'],
+        )
         try:
             film_db = Film.objects.get(imdb_id=film_imdb['imdbId'])
+            if _user.fav_list.filter(imdb_id=imdb_id).exists():
+                film['like_status'] = True
+            else:
+                film['like_status'] = False
         except:
             film_db = Film.objects.create(**film)
+            film['like_status'] = False
 
         l.append(film)
 
     for ID in ids:
-        t1 = threading.Thread(target=get_info, args=(ID, films))
+        t1 = threading.Thread(target=get_info, args=(ID, films, user))
         t1.start()
         threads.append(t1)
 
@@ -131,8 +146,10 @@ def add_to_fav(request):
     data = get_data(request)
     username = data.get('username')
     film_id = data.get('film_id')
+    print('film_id', film_id)
     film = Film.objects.get(imdb_id=film_id)
     user = User.objects.get(username=username)
+    print('LIKING FILM {} user: {}'.format(user, film))
     user.fav_list.add(film)
     user.save()
     return JsonResponse({'msg': 'success'})
@@ -241,32 +258,6 @@ def remove_friend(request):
     return JsonResponse({'msg': 'You are not friend with {} anymore(in hobbies!)'.format(friend_username)})
 
 
-def suggest(request):
-    """
-    suggest to friends a flim
-    :param request: (username, film_id, title of the suggestion)
-    :return: msg
-    """
-
-    data     = get_data(request)
-    film_id  = data.get('film_id')
-    title    = data.get('title')
-    username = data.get('username')
-    user = User.objects.get(username=username)
-    film = Film.objects.get(imdb_id=film_id)
-    friends = user.friends.all()
-    s = Suggest.objects.create(
-        title=title,
-        film=film,
-        suggester=user
-    )
-    s.save()
-    for friend in friends:
-        friend.suggests.add(s)
-        friend.save()
-    return JsonResponse({'msg': 'You just suggest this film to all your friends!'})
-
-
 def film2json(film):
     return {'imdbID':film.imdb_id,
             'title':film.title,
@@ -281,7 +272,16 @@ def suggest2json(_suggest):
 
 def user2json(_user):
     return {'username': _user.username,
-            'name': _user.name}
+            'name': _user.name,
+            'bio': _user.bio,
+            'avatar': 'http://192.168.1.249:8000' + _user.avatar.url}
+
+
+def users2json(_users):
+    users = []
+    for _user in _users:
+        users.append(user2json(_user))
+    return users
 
 
 def get_suggests(request):
@@ -302,3 +302,46 @@ def get_suggests(request):
     return JsonResponse({'msg': 'There are your suggests!',
                          'suggests': suggests
                          })
+
+
+def search_people(request):
+    data = get_data(request)
+    query = data.get('query')
+    username = data.get('username')
+    user = User.objects.get(username=username)
+    r1 = User.objects.filter(username__contains=query)
+    r2 = User.objects.filter(name__contains=query)
+    result_list = r1 | r2
+    users = []
+    # if u isn't in user's requested:relation = normal
+    # if u is in user's requested:relation = requested
+    # if u is in user's friends:relation = friend
+    for user in result_list:
+        users.append(user)
+    response = {'users': users2json(users)}
+    return JsonResponse(response)
+
+
+def create_suggest(request):
+    data = get_data(request)
+    username = data.get('username')
+    film_id = data.get('film_id')
+    title = data.get('title')
+    text = data.get('text')
+
+    user = User.objects.get(username=username)
+    film = Film.objects.get(imdb_id=film_id)
+    suggest = Suggestion.objects.create(
+        title=title,
+        text=text,
+        film=film,
+    )
+    suggest.save()
+    notification = Notification.objects.create(
+        owner=user,
+        kind='suggest',
+        suggest=suggest
+    )
+    notification.save()
+    response = {'msg': 'success'}
+    return JsonResponse(response)
