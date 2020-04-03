@@ -68,7 +68,7 @@ def signup(request):
         user = User.objects.create(username=username, name=name)
         user.set_password(password)
         user.save()
-        msg = 'welcome'
+        msg = 'success'
         response = {'msg': msg,
                     'user': user2json(user)}
 
@@ -261,13 +261,8 @@ def remove_friend(request):
 def film2json(film):
     return {'imdbID':film.imdb_id,
             'title':film.title,
+            'poster':film.poster,
             'icon':film.icon}
-
-
-def suggest2json(_suggest):
-    return {'title': _suggest.title,
-            'film': film2json(_suggest.film),
-            'suggester': user2json(_suggest.suggester)}
 
 
 def user2json(_user):
@@ -282,26 +277,6 @@ def users2json(_users):
     for _user in _users:
         users.append(user2json(_user))
     return users
-
-
-def get_suggests(request):
-    """
-    Returns all the suggestions for a user
-    :param request: (username)
-    :return: msg
-    """
-
-    data = get_data(request)
-    username = data.get('username')
-    user = User.objects.get(username=username)
-    user_suggests = user.get_suggestions()
-    suggests = []
-    for s in user_suggests:
-        suggests.append(suggest2json(s))
-    print(suggests)
-    return JsonResponse({'msg': 'There are your suggests!',
-                         'suggests': suggests
-                         })
 
 
 def search_people(request):
@@ -343,5 +318,48 @@ def create_suggest(request):
         suggest=suggest
     )
     notification.save()
+    friends = user.friends.all()
+    for friend in friends:
+        friend.notifications.add(notification)
+        friend.save()
+
     response = {'msg': 'success'}
+    return JsonResponse(response)
+
+
+def suggest2json(_suggest):
+    return {'title': _suggest.title,
+            'text': _suggest.text,
+            'film': film2json(_suggest.film)}
+
+
+def notification2json(_notification):
+    return {'owner': user2json(_notification.owner),
+            'kind': _notification.kind,
+            'suggest': suggest2json(_notification.suggest),
+            'action': _notification.action,}
+
+
+def notifications2json(_notifications):
+    l = []
+    for noti in _notifications:
+        l.append(notification2json(noti))
+    return l
+
+
+def get_notifications(request):
+    data = get_data(request)
+    try:
+        username = data.get('username')
+        user = User.objects.get(username=username)
+        notifications = user.notifications.all()
+        response = {
+            'msg':'success',
+            'notifications':notifications2json(notifications)
+        }
+    except Exception as e:
+        response = {
+            'msg': e,
+        }
+
     return JsonResponse(response)
