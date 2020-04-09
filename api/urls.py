@@ -12,6 +12,7 @@ urlpatterns = [
     path('fav', views.add_to_fav, name='add-to-fav'),
     path('watch', views.add_to_watch, name='add-to-watch'),
     path('friendship_request', views.friendship_request, name='friendship-request'),
+    path('get_friends', views.get_friends, name='get-friends'),
     path('accept_request', views.accept_request, name='accept-request'),
     path('deny_request', views.deny_request, name='deny-request'),
     path('remove_friend', views.remove_friend, name='remove_friend'),

@@ -259,10 +259,13 @@ def remove_friend(request):
 
 
 def film2json(film):
-    return {'imdbID':film.imdb_id,
-            'title':film.title,
-            'poster':film.poster,
-            'icon':film.icon}
+    return {'imdbID': film.imdb_id,
+            'title': film.title,
+            'poster': film.poster,
+            'year': film.year,
+            'rating': film.rating,
+            'director': film.director,
+            'icon': film.icon}
 
 
 def user2json(_user):
@@ -270,6 +273,16 @@ def user2json(_user):
             'name': _user.name,
             'bio': _user.bio,
             'avatar': 'http://192.168.1.249:8000' + _user.avatar.url}
+
+
+def get_friends(request):
+    data = get_data(request)
+    username = data.get('username')
+    user = User.objects.get(username=username)
+    response = {
+        'friends': users2json(user.friends.all())
+    }
+    return JsonResponse(response)
 
 
 def users2json(_users):
