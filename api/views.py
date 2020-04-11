@@ -122,6 +122,17 @@ def search_film(request):
             film_db = Film.objects.create(**film)
             film['like_status'] = False
 
+        try:
+            film_db = Film.objects.get(imdb_id=film_imdb['imdbId'])
+            if _user.watch_films.filter(imdb_id=imdb_id).exists():
+                film['watch_status'] = True
+            else:
+                film['watch_status'] = False
+        except:
+            film_db = Film.objects.create(**film)
+            film['watch_status'] = False
+
+
         l.append(film)
 
     for ID in ids:
