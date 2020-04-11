@@ -197,10 +197,10 @@ def get_requests(request):
     username = data.get('username')
     user = User.objects.get(username=username)
     requests = []
-    for r in user.requested_users.all():
-        requests.append(r.username)
+    for user in user.requested_users.all():
+        requests.append(user2json(user))
 
-    return JsonResponse({'msg': 'here they are!', 'requests': requests})
+    return JsonResponse({'requests': requests})
 
 
 def accept_request(request):
@@ -228,14 +228,15 @@ def deny_request(request):
     :param request: (username, friend_username)
     :return: msg
     """
-
     data = get_data(request)
     friend_username = data.get('friend_username')
     username = data.get('username')
     user = User.objects.get(username=username)
     friend = User.objects.get(username=friend_username)
     user.requested_users.remove(friend)
+    friend.requested_users.remove(friend)
     user.save()
+    friend.save()
     return JsonResponse({'msg': 'You denied him/her!'})
 
 
