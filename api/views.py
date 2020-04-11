@@ -114,12 +114,15 @@ def search_film(request):
         )
         try:
             film_db = Film.objects.get(imdb_id=film_imdb['imdbId'])
+            film = film2json(film_db)
             if _user.fav_list.filter(imdb_id=imdb_id).exists():
                 film['like_status'] = True
             else:
                 film['like_status'] = False
+
         except:
             film_db = Film.objects.create(**film)
+            film = film2json(film_db)
             film['like_status'] = False
 
         try:
@@ -330,6 +333,7 @@ def create_suggest(request):
     text = data.get('text')
 
     user = User.objects.get(username=username)
+    print("*******************TEST***************", film_id)
     film = Film.objects.get(imdb_id=film_id)
     suggest = Suggestion.objects.create(
         title=title,
