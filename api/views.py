@@ -392,3 +392,14 @@ def get_notifications(request):
         }
 
     return JsonResponse(response)
+
+
+def get_people(request):
+    users = User.objects.all()
+    response = {'users': users2json(users)}
+    return JsonResponse(response)
+
+
+
+
+

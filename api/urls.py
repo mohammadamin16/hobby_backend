@@ -20,4 +20,5 @@ urlpatterns = [
     path('get_notifications', views.get_notifications, name='get-suggests'),
     path('search_people', views.search_people, name='search-people'),
     path('suggest', views.create_suggest, name='suggest'),
+    path('get_people', views.get_people, name='get-people'),
 ]
