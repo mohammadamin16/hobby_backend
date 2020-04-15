@@ -2,6 +2,7 @@ import json
 import threading
 
 from django.contrib.auth import authenticate
+from django.core.files import File
 from django.http import HttpResponse, JsonResponse
 from accounts.models import User
 from api.models import Suggestion, Notification
@@ -20,6 +21,18 @@ def get_data(request):
     except:
         data = request.POST
     return data
+
+def get_files(request):
+    """
+    It tries to catch sent files with post request
+    """
+    try:
+        print("TEST-REQUEST-BODY:", request.body)
+        files = json.loads(request.body.decode('utf-8'))
+        print("TEST-FILES:", files)
+    except:
+        files = request.FILES
+    return files
 
 
 def index(request):
@@ -400,6 +413,19 @@ def get_people(request):
     return JsonResponse(response)
 
 
+def change_avatar(request):
+    data = get_data(request)
+    files = get_files(request)
+    username = data.get('username')
+    print("FILES:", files.get('image'))
+    file = request.FILES['image']
+    user = User.objects.get(username=username)
+    user.avatar.save("{}/{}.png".format(username, username), file)
+    handle_uploaded_file(file, username)
+    return JsonResponse({'msg':'success'})
 
 
-
+def handle_uploaded_file(f, username):
+    with open('media/avatars/{}.png'.format(username), "wb+") as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
