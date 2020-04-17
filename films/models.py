@@ -6,7 +6,6 @@ class Film(models.Model):
     title = models.CharField(max_length=100)
     icon = models.URLField()
 
-    # New fields
     poster = models.URLField(blank=True)
 
     year = models.IntegerField(blank=True)
@@ -21,12 +20,6 @@ class Film(models.Model):
     director = models.CharField(max_length=200,blank=True)
 
     synopsis = models.TextField(blank=True)
-
-
-
-
-
-
 
     def __str__(self):
         return self.title

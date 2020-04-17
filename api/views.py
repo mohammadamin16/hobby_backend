@@ -10,7 +10,7 @@ from films.models import Film
 
 from itertools import chain
 from films import imdbapi
-
+from . import db
 
 def get_data(request):
     """
@@ -22,14 +22,15 @@ def get_data(request):
         data = request.POST
     return data
 
+
 def get_files(request):
     """
     It tries to catch sent files with post request
     """
+    # print("TEST-REQUEST-BODY:", request.body)
     try:
-        print("TEST-REQUEST-BODY:", request.body)
         files = json.loads(request.body.decode('utf-8'))
-        print("TEST-FILES:", files)
+        # print("TEST-FILES:", files)
     except:
         files = request.FILES
     return files
@@ -297,10 +298,17 @@ def film2json(film):
 
 
 def user2json(_user):
+    try:
+        avatar_link = db.get_avatar_link(_user.username)
+    except :
+        avatar_link = db.get_avatar_default()
+
     return {'username': _user.username,
             'name': _user.name,
             'bio': _user.bio,
-            'avatar': 'http://192.168.1.249:8000' + _user.avatar.url}
+            # 'avatar': 'https://vast-brushlands-59580.herokuapp.com' + _user.avatar.url
+            'avatar': avatar_link
+            }
 
 
 def get_friends(request):
@@ -413,16 +421,21 @@ def get_people(request):
     return JsonResponse(response)
 
 
+
 def change_avatar(request):
     data = get_data(request)
     files = get_files(request)
     username = data.get('username')
-    print("FILES:", files.get('image'))
     file = request.FILES['image']
     user = User.objects.get(username=username)
     user.avatar.save("{}/{}.png".format(username, username), file)
     handle_uploaded_file(file, username)
-    return JsonResponse({'msg':'success'})
+
+    db.upload_avatar(user.avatar.path, username)
+
+    return JsonResponse({'msg': 'success'})
+
+
 
 
 def handle_uploaded_file(f, username):
