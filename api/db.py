@@ -1,6 +1,6 @@
 import dropbox
 # from accounts.models import User
-token = "MDfnY__9e1AAAAAAAAABtVeUsjht1LoZF26Lsjz223Y6BgtbTjv5trUPvpxJnnWT"
+token = "MDfnY__9e1AAAAAAAAABvSczAMMevb4bdHPcTX6Sw-ZCo_SWBxwgvOaJv-wDFX4I"
 
 
 def upload_avatar(file, username):

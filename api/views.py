@@ -3,6 +3,7 @@ import threading
 
 from django.contrib.auth import authenticate
 from django.core.files import File
+from django.db import IntegrityError
 from django.http import HttpResponse, JsonResponse
 from accounts.models import User
 from api.models import Suggestion, Notification
@@ -86,10 +87,15 @@ def signup(request):
         response = {'msg': msg,
                     'user': user2json(user)}
 
-    except Exception as e:
-        msg = e.args
+    except IntegrityError as e:
+        msg = 'this username is taken'
         response = {'msg': msg}
-        print(msg)
+        print(e.args)
+
+    else:
+        msg = 'Something went wrong!'
+        response = {'msg': msg}
+        print("SOMETHING WENT WRONG IN SIGNUP")
 
     return JsonResponse(response)
 
@@ -297,10 +303,17 @@ def film2json(film):
             'icon': film.icon}
 
 
+def films2json(films):
+    response = []
+    for film in films:
+        response.append(film2json(film))
+    return response
+
+
 def user2json(_user):
     try:
         avatar_link = db.get_avatar_link(_user.username)
-    except :
+    except:
         avatar_link = db.get_avatar_default()
 
     return {'username': _user.username,
@@ -354,7 +367,6 @@ def create_suggest(request):
     text = data.get('text')
 
     user = User.objects.get(username=username)
-    print("*******************TEST***************", film_id)
     film = Film.objects.get(imdb_id=film_id)
     suggest = Suggestion.objects.create(
         title=title,
@@ -372,7 +384,7 @@ def create_suggest(request):
     for friend in friends:
         friend.notifications.add(notification)
         friend.save()
-
+    user.notifications.add(notification)
     response = {'msg': 'success'}
     return JsonResponse(response)
 
@@ -421,7 +433,6 @@ def get_people(request):
     return JsonResponse(response)
 
 
-
 def change_avatar(request):
     data = get_data(request)
     files = get_files(request)
@@ -436,9 +447,16 @@ def change_avatar(request):
     return JsonResponse({'msg': 'success'})
 
 
-
-
 def handle_uploaded_file(f, username):
     with open('media/avatars/{}.png'.format(username), "wb+") as destination:
         for chunk in f.chunks():
             destination.write(chunk)
+
+
+def get_favs(request):
+    data = get_data(request)
+    username = data.get('username')
+    user = User.objects.get(username=username)
+    favs = user.fav_list.all()
+    favs = films2json(favs)
+    return JsonResponse({'favs': favs})

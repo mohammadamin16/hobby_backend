@@ -22,4 +22,5 @@ urlpatterns = [
     path('suggest', views.create_suggest, name='suggest'),
     path('get_people', views.get_people, name='get-people'),
     path('change_avatar', views.change_avatar, name='change-avatar'),
+    path('get_favs', views.get_favs, name='get-favs'),
 ]
