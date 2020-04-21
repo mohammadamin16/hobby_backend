@@ -1,6 +1,8 @@
 import dropbox
 # from accounts.models import User
-token = "MDfnY__9e1AAAAAAAAABwlB3g0hcGiwMZK02E5VhR-3xnHoChtoIXoc7HDtELp5B"
+from django.conf import settings
+
+token = settings.DROPBOX_TOKEN
 
 
 def upload_avatar(file, username):
