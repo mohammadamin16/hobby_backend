@@ -180,11 +180,20 @@ def add_to_fav(request):
     data = get_data(request)
     username = data.get('username')
     film_id = data.get('film_id')
-    print('film_id', film_id)
     film = Film.objects.get(imdb_id=film_id)
     user = User.objects.get(username=username)
-    print('LIKING FILM {} user: {}'.format(user, film))
     user.fav_list.add(film)
+    user.save()
+    return JsonResponse({'msg': 'success'})
+
+
+def remove_fav(request):
+    data = get_data(request)
+    username = data.get('username')
+    film_id = data.get('film_id')
+    film = Film.objects.get(imdb_id=film_id)
+    user = User.objects.get(username=username)
+    user.fav_list.remove(film)
     user.save()
     return JsonResponse({'msg': 'success'})
 
@@ -201,6 +210,22 @@ def add_to_watch(request):
     film = Film.objects.get(imdb_id=film_id)
     user = User.objects.get(username=username)
     user.watch_films.add(film)
+    user.save()
+    return JsonResponse({'msg': 'success'})
+
+
+def remove_watch(request):
+    """
+    Add a Film to user's Watch List
+    :param request: (username, film_id)
+    :return: msg
+    """
+    data = get_data(request)
+    username = data.get('username')
+    film_id = data.get('film_id')
+    film = Film.objects.get(imdb_id=film_id)
+    user = User.objects.get(username=username)
+    user.watch_films.remove(film)
     user.save()
     return JsonResponse({'msg': 'success'})
 
@@ -300,6 +325,10 @@ def film2json(film):
             'year': film.year,
             'rating': film.rating,
             'director': film.director,
+            'writer': film.writer,
+            'countries': film.countries,
+            'cast': film.cast,
+            'synopsis': film.synopsis,
             'icon': film.icon}
 
 
