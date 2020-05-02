@@ -1,5 +1,47 @@
 from django.db import IntegrityError
 from imdb import IMDb
+from films.models import Film
+from api.utility import *
+from accounts.models import User
+
+def get_film_info(imdb_id:int, l:list, _user: User):
+    try:
+        film_db = Film.objects.get(imdb_id=imdb_id)
+        film = film2json(film_db)
+        if _user.fav_list.filter(imdb_id=imdb_id).exists():
+            film['like_status'] = True
+        else:
+            film['like_status'] = False
+        
+        if _user.watch_films.filter(imdb_id=imdb_id).exists():
+            film['watch_status'] = True
+        else:
+            film['watch_status'] = False
+
+    except:
+        film_imdb = get_info(imdb_id)
+        film = dict(
+            imdb_id=film_imdb['imdbId'],
+            title=film_imdb['title'],
+            icon=film_imdb['cover_url'],
+            poster=film_imdb['fullsize_poster'],
+            year=film_imdb['year'],
+            countries=film_imdb['countries'],
+            box_office=film_imdb['box_office'],
+            rating=film_imdb['rating'],
+            votes=film_imdb['votes'],
+            cast=film_imdb['cast'],
+            writer=film_imdb['writer'],
+            director=film_imdb['director'],
+            synopsis=film_imdb['synopsis'],
+        )
+        film_db = Film.objects.create(**film)
+        film = film2json(film_db)
+        film['like_status'] = False
+        film['watch_status'] = False
+
+    l.append(film)
+
 
 
 def search(query, results=2, sort_by='rating'):

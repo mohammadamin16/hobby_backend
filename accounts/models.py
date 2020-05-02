@@ -47,7 +47,6 @@ class User(AbstractBaseUser):
     # Hobby Fields:
     watch_films = models.ManyToManyField('films.Film', blank=True, related_name='watched')
     fav_list      = models.ManyToManyField('films.Film', blank=True, related_name='fav_list')
-    # last_watched_film = models.ForeignKey('films.Film', on_delete=models.CASCADE, blank=True, related_name='lastWatched', null=True)
     requested_users = models.ManyToManyField('accounts.User', related_name='request_users', blank=True)
     friends = models.ManyToManyField('accounts.User', related_name='friends_users', blank=True)
     notifications = models.ManyToManyField('api.Notification', related_name='notifications', blank=True)
@@ -56,19 +55,13 @@ class User(AbstractBaseUser):
         return self.username
 
     def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
         return True
 
     def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
         return True
 
     @property
     def is_staff(self):
-        "Is the user a member of staff?"
-        # Simplest possible answer: All admins are staff
         return self.is_admin
 
     def get_suggestions(self):

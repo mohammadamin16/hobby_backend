@@ -15,6 +15,9 @@ env
 env/
 hobby_backend/__pycache__
 venv/
+.vscode/
+/.vscode/
+.vscode/*
 accounts/_ycache__
 hobby_backend/__pycache__/
 films/templatetags/__pycache__/

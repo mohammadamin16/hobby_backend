@@ -1,5 +1,4 @@
 import dropbox
-# from accounts.models import User
 from django.conf import settings
 
 token = settings.DROPBOX_TOKEN
@@ -15,7 +14,6 @@ def upload_avatar(file, username):
         dbx.files_upload(get_file(file), '/avatars/{}/{}.png'.format(username, username),
                          mode=dropbox.files.WriteMode.overwrite)
 
-
 def get_file(_filepath):
     f = open(_filepath, 'rb')
     return f.read()
@@ -27,12 +25,14 @@ def get_avatar_link(username):
     return result.link
 
 
-if __name__ == "__main__":
-    link = get_avatar_link('amin')
-    print(link)
-
-
 def get_avatar_default():
     dbx = dropbox.Dropbox(token)
     result = dbx.files_get_temporary_link('/avatars/user.png')
     return result.link
+
+
+def handle_uploaded_file(f, username):
+    with open('media/avatars/{}.png'.format(username), "wb+") as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
