@@ -39,13 +39,15 @@ def signup(request):
         response = {'msg': msg,
                     'user': user2json(user)}
 
-    except IntegrityError as e:
+    except Exception as e:
+        print('EEEEEEEERRRRRRRRRROOOOOOOOOOOOOORRRRRRRRRRRRRR:', e)
         msg = 'this username is taken'
         response = {'msg': msg}
-  
-    else:
-        msg = 'Something went wrong!'
-        response = {'msg': msg}
+    
+
+    # else:
+    #     msg = 'Something went wrong!'
+    #     response = {'msg': msg}
   
     return JsonResponse(response)
 
